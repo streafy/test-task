@@ -58,7 +58,7 @@ fun MainScreen() {
         AppNavHost(
             navHostController = navController,
             camerasScreenContent = { CamerasScreen(padding = it) },
-            doorsScreenContent = { DoorsScreen() }
+            doorsScreenContent = { DoorsScreen(padding = it) }
         )
     }
 }
