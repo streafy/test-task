@@ -21,11 +21,7 @@ class CamerasRepository @Inject constructor(
         if (localCameras.isNotEmpty()) {
             return localCameras
         }
-
-        val cameras = api.getCameras().map { it.toDomain() }
-        overwriteDatabase(cameras)
-
-        return cameras
+        return api.getCameras().map { it.toDomain() }.also { overwriteDatabase(it) }
     }
 
     suspend fun updateCamera(camera: Camera) {
@@ -35,11 +31,8 @@ class CamerasRepository @Inject constructor(
         }
     }
 
-    suspend fun getNetworkCameras(): List<Camera> {
-        val cameras = api.getCameras().map { it.toDomain() }
-        overwriteDatabase(cameras)
-        return cameras
-    }
+    suspend fun getNetworkCameras(): List<Camera> =
+        api.getCameras().map { it.toDomain() }.also { overwriteDatabase(it) }
 
     fun getLocalCameras(): List<Camera> = realm.query<LocalCamera>().find().map { it.toDomain() }
 
