@@ -61,7 +61,7 @@ fun CamerasScreen(
     padding: PaddingValues,
     viewModel: CamerasViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.observeAsState()
+    val state by viewModel.state.observeAsState(CamerasUiState.Loading)
 
     when (val uiState = state) {
         CamerasUiState.Loading -> {
@@ -71,14 +71,13 @@ fun CamerasScreen(
             Content(
                 padding,
                 uiState.cameras,
-                onRefresh = { viewModel.getCameras(isPullRefresh = true) },
+                onRefresh = { viewModel.getCameras(isRefresh = true) },
                 viewModel::onFavoriteClick
             )
         }
         is CamerasUiState.Error -> {
-            Error(uiState.message) { viewModel.getCameras() }
+            Error(uiState.message) { viewModel.getCameras(isRefresh = true) }
         }
-        else -> throw RuntimeException("Invalid CamerasUiState: $uiState")
     }
 }
 
@@ -141,8 +140,6 @@ fun CameraCard(
     camera: Camera,
     onFavoriteClick: (Camera) -> Unit
 ) {
-    val loaded = remember { mutableStateOf(false) }
-
     val density = LocalDensity.current
     val state = remember {
         AnchoredDraggableState(
@@ -173,52 +170,67 @@ fun CameraCard(
                 }
                 .anchoredDraggable(state, Orientation.Horizontal)
         ) {
-            Box {
-                CameraPreview(previewUri = camera.snapshot) { loaded.value = true }
-                if (loaded.value) {
-                    CameraPreviewOverlay(isFavorite = camera.favorites, isRecording = camera.rec)
-                }
-            }
+            CameraPreview(
+                previewUri = camera.snapshot,
+                isFavorite = camera.favorites,
+                isRecording = camera.rec
+            )
             Text(
                 text = camera.name,
                 modifier = Modifier.padding(16.dp)
             )
         }
-        IconButton(
-            onClick = { onFavoriteClick(camera) },
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .zIndex(-1f),
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.star_button),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
-        }
+        RevealedButton(onFavoriteClick, camera)
     }
 
 }
 
 @Composable
+private fun BoxScope.RevealedButton(
+    onFavoriteClick: (Camera) -> Unit,
+    camera: Camera
+) {
+    IconButton(
+        onClick = { onFavoriteClick(camera) },
+        modifier = Modifier
+            .align(Alignment.CenterEnd)
+            .zIndex(-1f),
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.star_button),
+            contentDescription = null,
+            tint = Color.Unspecified
+        )
+    }
+}
+
+@Composable
 private fun CameraPreview(
     previewUri: String,
-    onSuccess: () -> Unit = {}
+    isFavorite: Boolean,
+    isRecording: Boolean
 ) {
-    AsyncImage(
-        model = ImageRequest.Builder(context = LocalContext.current)
-            .data(previewUri)
-            .crossfade(true)
-            .build(),
-        contentDescription = null,
-        placeholder = painterResource(id = R.drawable.loading_img),
-        onSuccess = { onSuccess() },
-        contentScale = ContentScale.Crop,
-        modifier = Modifier
-            .height(207.dp),
-        imageLoader = LocalContext.current.imageLoader.newBuilder().logger(DebugLogger())
-            .build()
-    )
+    val loaded = remember { mutableStateOf(false) }
+
+    Box {
+        AsyncImage(
+            model = ImageRequest.Builder(context = LocalContext.current)
+                .data(previewUri)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            placeholder = painterResource(id = R.drawable.loading_img),
+            onSuccess = { loaded.value = true },
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .height(207.dp),
+            imageLoader = LocalContext.current.imageLoader.newBuilder().logger(DebugLogger())
+                .build()
+        )
+        if (loaded.value) {
+            CameraPreviewOverlay(isFavorite = isFavorite, isRecording = isRecording)
+        }
+    }
 }
 
 @Composable

@@ -23,11 +23,11 @@ class CamerasViewModel @Inject constructor(
         getCameras()
     }
 
-    fun getCameras(isPullRefresh: Boolean = false) {
+    fun getCameras(isRefresh: Boolean = false) {
         viewModelScope.launch {
             _state.value = CamerasUiState.Loading
             _state.value = try {
-                val cameras = if (isPullRefresh) {
+                val cameras = if (isRefresh) {
                     camerasRepository.getNetworkCameras()
                 } else {
                     camerasRepository.getCameras()
@@ -49,9 +49,9 @@ class CamerasViewModel @Inject constructor(
     }
 }
 
-sealed interface CamerasUiState{
+sealed interface CamerasUiState {
 
-    data object Loading: CamerasUiState
+    data object Loading : CamerasUiState
     data class Content(val cameras: List<Camera>) : CamerasUiState
     data class Error(val message: String?) : CamerasUiState
 }
