@@ -8,11 +8,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 class RealmModule {
 
+    @Singleton
     @Provides
     fun provideRealm(): Realm {
         val config = RealmConfiguration.create(schema = setOf(LocalCamera::class, LocalDoor::class))

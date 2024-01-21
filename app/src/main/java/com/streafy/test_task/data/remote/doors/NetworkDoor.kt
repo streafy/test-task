@@ -15,7 +15,7 @@ data class NetworkDoor(
     val id: Int,
     val name: String,
     val room: String?,
-    val snapshot: String?
+    val snapshot: String = ""
 )
 
 fun NetworkDoor.toDomain(): Door = Door(
