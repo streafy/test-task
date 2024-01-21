@@ -274,7 +274,13 @@ private fun CameraPreview(
     Box {
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(previewUri)
+                //.data(previewUri)
+                //Добавил плейсхолдеры(нужны для показа оверлея) т.к по ссылке из api выдает
+                //Failed - https://serverspace.ru/wp-content/uploads/2019/06/backup-i-snapshot.png
+                // - javax.net.ssl.SSLHandshakeException:
+                //   java.security.cert.CertPathValidatorException:
+                //   Trust anchor for certification path not found.
+                .data("https://developer.android.com/codelabs/basic-android-kotlin-compose-amphibians-app/img/great-basin-spadefoot.png")
                 .crossfade(true)
                 .build(),
             contentDescription = null,
